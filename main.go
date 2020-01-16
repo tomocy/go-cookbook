@@ -1,61 +1,98 @@
 package main
 
 import (
-	"errors"
+	"context"
 	"fmt"
-	"math/rand"
-	"os"
-	"time"
+	"strings"
+	"sync"
 )
 
 func main() {
-	d := newDeamon()
-	go d.serve()
+	ps := newpubsub()
+	defer ps.close()
 
-	if err := d.sendRequest(); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to send request: %s\n", err)
-		os.Exit(1)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go ps.serve(ctx)
+
+	subs := make([]chan string, 3)
+	for i := range subs {
+		subs[i] = make(chan string)
+	}
+	defer func() {
+		for _, sub := range subs {
+			close(sub)
+		}
+	}()
+
+	for _, sub := range subs {
+		ps.subscribe(sub)
+	}
+
+	ps.publish("hello")
+
+	var wg sync.WaitGroup
+	for i, sub := range subs {
+		wg.Add(1)
+		go func(msgCh <-chan string, cnt int) {
+			defer wg.Done()
+			fmt.Println(strings.Repeat(<-msgCh, cnt))
+		}(sub, i+1)
+	}
+
+	wg.Wait()
+}
+
+func newpubsub() *pubsub {
+	return &pubsub{
+		subs:    make(map[sub]struct{}),
+		subCh:   make(chan sub),
+		unsubCh: make(chan sub),
+		msgCh:   make(chan string),
 	}
 }
 
-func newDeamon() *deamon {
-	return &deamon{
-		reqCh: make(chan respCh),
-	}
+type pubsub struct {
+	subs    map[sub]struct{}
+	subCh   chan sub
+	unsubCh chan sub
+	msgCh   chan string
 }
 
-type deamon struct {
-	reqCh chan respCh
+func (ps *pubsub) subscribe(sub sub) {
+	ps.subCh <- sub
 }
 
-func (d *deamon) serve() {
+func (ps *pubsub) unsubscribe(sub sub) {
+	ps.unsubCh <- sub
+}
+
+func (ps *pubsub) publish(msg string) {
+	ps.msgCh <- msg
+}
+
+func (ps *pubsub) serve(ctx context.Context) {
 	for {
 		select {
-		case respCh := <-d.reqCh:
-			go func() {
-				respCh <- d.handle()
-			}()
+		case <-ctx.Done():
+			return
+		case ch := <-ps.subCh:
+			ps.subs[ch] = struct{}{}
+		case ch := <-ps.unsubCh:
+			delete(ps.subs, ch)
+		case msg := <-ps.msgCh:
+			for sub := range ps.subs {
+				sub <- msg
+			}
 		}
 	}
 }
 
-func (d *deamon) handle() error {
-	var err error
-	rand.Seed(time.Now().UnixNano())
-	if rand.Float32() < 0.5 {
-		err = errors.New("failed to handle")
-	}
-
-	return err
+func (ps *pubsub) close() {
+	close(ps.subCh)
+	close(ps.unsubCh)
+	close(ps.msgCh)
 }
 
-func (d *deamon) sendRequest() error {
-	ch := make(chan error)
-	defer close(ch)
-
-	d.reqCh <- ch
-
-	return <-ch
-}
-
-type respCh chan error
+type sub chan<- string
