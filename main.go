@@ -20,11 +20,6 @@ func main() {
 	for i := range subs {
 		subs[i] = make(chan string)
 	}
-	defer func() {
-		for _, sub := range subs {
-			close(sub)
-		}
-	}()
 
 	for _, sub := range subs {
 		ps.subscribe(sub)
@@ -35,11 +30,20 @@ func main() {
 		wg.Add(1)
 		go func(msgCh <-chan string, cnt int) {
 			defer wg.Done()
-			fmt.Println(strings.Repeat(<-msgCh, cnt))
+			for msg := range msgCh {
+				fmt.Println(strings.Repeat(msg, cnt))
+			}
 		}(sub, i+1)
 	}
 
-	ps.publish("hello")
+	for i := 0; i < 10; i++ {
+		ps.publish(fmt.Sprint(i))
+	}
+
+	for _, sub := range subs {
+		ps.unsubscribe(sub)
+		close(sub)
+	}
 
 	wg.Wait()
 }
