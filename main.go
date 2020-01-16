@@ -30,8 +30,6 @@ func main() {
 		ps.subscribe(sub)
 	}
 
-	ps.publish("hello")
-
 	var wg sync.WaitGroup
 	for i, sub := range subs {
 		wg.Add(1)
@@ -40,6 +38,8 @@ func main() {
 			fmt.Println(strings.Repeat(<-msgCh, cnt))
 		}(sub, i+1)
 	}
+
+	ps.publish("hello")
 
 	wg.Wait()
 }
