@@ -40,27 +40,13 @@ func (l *lexer) readToken() token {
 			return l.composeLetters()
 		}
 
-		t := token{
-			kind:    tokenKinds[string(char)],
-			literal: string(char),
-			pos:     l.pos,
-		}
-		l.readChar()
-
-		return t
+		return l.composeSingleToken()
 	case ':':
 		if l.nextChar() != ' ' && l.nextChar() != '\n' {
 			return l.composeLetters()
 		}
 
-		t := token{
-			kind:    tokenKinds[string(char)],
-			literal: string(char),
-			pos:     l.pos,
-		}
-		l.readChar()
-
-		return t
+		return l.composeSingleToken()
 	case '"':
 		return l.composeStringWithQuotes()
 	default:
@@ -71,29 +57,32 @@ func (l *lexer) readToken() token {
 			return l.composeLetters()
 		}
 
-		t := token{
-			kind:    tokenUnknown,
-			literal: string(char),
-			pos:     l.pos,
-		}
-
-		l.readChar()
-
-		return t
+		return l.composeSingleTokenAs(tokenUnknown)
 	}
 }
 
-func (l *lexer) readString() string {
-	start := l.currIndex
-	for {
-		l.readChar()
-		if l.currChar() == '"' {
-			l.readChar()
-			break
-		}
+func (l *lexer) composeSingleToken() token {
+	t := token{
+		kind:    tokenKinds[string(l.currChar())],
+		literal: string(l.currChar()),
+		pos:     l.pos,
 	}
 
-	return string(l.src[start:l.currIndex])
+	l.readChar()
+
+	return t
+}
+
+func (l *lexer) composeSingleTokenAs(kind tokenKind) token {
+	t := token{
+		kind:    kind,
+		literal: string(l.currChar()),
+		pos:     l.pos,
+	}
+
+	l.readChar()
+
+	return t
 }
 
 func (l *lexer) composeStringWithQuotes() token {
@@ -108,6 +97,19 @@ func (l *lexer) composeStringWithQuotes() token {
 	t.pos.end = l.pos.start
 
 	return t
+}
+
+func (l *lexer) readString() string {
+	start := l.currIndex
+	for {
+		l.readChar()
+		if l.currChar() == '"' {
+			l.readChar()
+			break
+		}
+	}
+
+	return string(l.src[start:l.currIndex])
 }
 
 func (l *lexer) composeNum() token {
