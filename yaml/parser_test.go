@@ -53,13 +53,13 @@ func TestParse(t *testing.T) {
 					String(`"one"`),
 					Num(2),
 				},
-				Object{
+				Dictinary{
 					{
 						key: String(`"five"`),
 						val: Bool(true),
 					},
 				},
-				Object{
+				Dictinary{
 					{
 						key: String(`"6"`),
 						val: Bool(false),
@@ -71,7 +71,7 @@ func TestParse(t *testing.T) {
 				},
 			},
 		},
-		"object": {
+		"dictionary": {
 			src: `a: 1
 b: two
 c:
@@ -81,7 +81,7 @@ e:
 f:
   g:
     h: i`,
-			expected: Object{
+			expected: Dictinary{
 				{
 					key: String(`"a"`),
 					val: Num(1),
@@ -100,10 +100,10 @@ f:
 				},
 				{
 					key: String(`"f"`),
-					val: Object{
+					val: Dictinary{
 						{
 							key: String(`"g"`),
-							val: Object{
+							val: Dictinary{
 								{
 									key: String(`"h"`),
 									val: String(`"i"`),
@@ -139,7 +139,7 @@ spec:
         - /bin/sleep
         - infinity
 `,
-			expected: Object{
+			expected: Dictinary{
 				{
 					key: String(`"apiVersion"`),
 					val: String(`"apps/v1"`),
@@ -150,7 +150,7 @@ spec:
 				},
 				{
 					key: String(`"metadata"`),
-					val: Object{
+					val: Dictinary{
 						{
 							key: String(`"name"`),
 							val: String(`"app"`),
@@ -163,17 +163,17 @@ spec:
 				},
 				{
 					key: String(`"spec"`),
-					val: Object{
+					val: Dictinary{
 						{
 							key: String(`"replicas"`),
 							val: Num(1),
 						},
 						{
 							key: String(`"selector"`),
-							val: Object{
+							val: Dictinary{
 								{
 									key: String(`"matchLabels"`),
-									val: Object{
+									val: Dictinary{
 										{
 											key: String(`"app"`),
 											val: String(`"curl"`),
@@ -188,13 +188,13 @@ spec:
 						},
 						{
 							key: String(`"template"`),
-							val: Object{
+							val: Dictinary{
 								{
 									key: String(`"metadata"`),
-									val: Object{
+									val: Dictinary{
 										{
 											key: String(`"labels"`),
-											val: Object{
+											val: Dictinary{
 												{
 													key: String(`"app"`),
 													val: String(`"curl"`),
@@ -209,11 +209,11 @@ spec:
 								},
 								{
 									key: String(`"spec"`),
-									val: Object{
+									val: Dictinary{
 										{
 											key: String(`"containers"`),
 											val: Array{
-												Object{
+												Dictinary{
 													{
 														key: String(`"name"`),
 														val: String(`"curl"`),
@@ -268,9 +268,9 @@ func assertValue(actual, expected value) error {
 		}
 
 		return nil
-	case Object:
-		if err := assertObject(actual.(Object), expected); err != nil {
-			return fmt.Errorf("unexpected object: %w", err)
+	case Dictinary:
+		if err := assertDictinary(actual.(Dictinary), expected); err != nil {
+			return fmt.Errorf("unexpected dictionary: %w", err)
 		}
 
 		return nil
@@ -296,7 +296,7 @@ func assertArray(actual, expected Array) error {
 	return nil
 }
 
-func assertObject(actual, expected Object) error {
+func assertDictinary(actual, expected Dictinary) error {
 	if len(actual) != len(expected) {
 		return reprotUnexpected("len of value", len(actual), len(expected))
 	}

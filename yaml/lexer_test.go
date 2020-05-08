@@ -80,7 +80,7 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenEOF, literal: "\x00", pos: pos{line: 4, start: 6, end: 7}},
 			},
 		},
-		"object": {
+		"dictionary": {
 			src: `a: 1
 b: 2
 c:

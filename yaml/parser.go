@@ -33,9 +33,9 @@ func (p *parser) parse() (value, error) {
 		return val, nil
 	case tokenNum, tokenString, tokenBool:
 		if p.willHaveToken(tokenColon) {
-			val, err := p.parseObject()
+			val, err := p.parseDictinary()
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse object: %w", err)
+				return nil, fmt.Errorf("failed to parse dictionary: %w", err)
 			}
 
 			return val, nil
@@ -93,10 +93,10 @@ func (p *parser) parseArray() (Array, error) {
 	return arr, nil
 }
 
-func (p *parser) parseObject() (Object, error) {
+func (p *parser) parseDictinary() (Dictinary, error) {
 	basePos := p.currTok.pos
 
-	var obj Object
+	var obj Dictinary
 	for {
 		prop, err := p.parseProp()
 		if err != nil {
@@ -220,9 +220,9 @@ type Array []value
 
 func (Array) value() {}
 
-type Object []Prop
+type Dictinary []Prop
 
-func (Object) value() {}
+func (Dictinary) value() {}
 
 type Prop struct {
 	key String
