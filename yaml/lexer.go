@@ -21,6 +21,9 @@ type lexer struct {
 
 const (
 	charEOF = 0
+
+	literalTrue  = "true"
+	literalFalse = "false"
 )
 
 func (l *lexer) readToken() token {
@@ -68,9 +71,15 @@ func (l *lexer) readToken() token {
 			return l.composeLetters()
 		}
 
-		return token{
-			kind: tokenUnknown,
+		t := token{
+			kind:    tokenUnknown,
+			literal: string(char),
+			pos:     l.pos,
 		}
+
+		l.readChar()
+
+		return t
 	}
 }
 
@@ -147,10 +156,18 @@ func (l *lexer) composeLetters() token {
 func (l *lexer) readLetters() string {
 	start := l.currIndex
 	for isLetter(l.currChar()) {
+		if l.isHandlingProp() {
+			break
+		}
+
 		l.readChar()
 	}
 
 	return string(l.src[start:l.currIndex])
+}
+
+func (l lexer) isHandlingProp() bool {
+	return l.currChar() == ':' && l.nextChar() == ' ' || l.currChar() == ':' && l.nextChar() == '\n'
 }
 
 func (l *lexer) skipWhitespaces() {
@@ -168,10 +185,22 @@ func (l *lexer) readChar() {
 		return
 	}
 
-	l.pos.move(l.currChar())
+	l.movePos()
 
 	l.currIndex = l.nextIndex
 	l.nextIndex++
+}
+
+func (l *lexer) movePos() {
+	c := l.currChar()
+	if l.willReadFirstChar() {
+		c = 0
+	}
+	l.pos.move(c)
+}
+
+func (l lexer) willReadFirstChar() bool {
+	return l.currIndex == 0 && l.nextIndex == 0
 }
 
 func (l lexer) currChar() rune {
@@ -195,7 +224,7 @@ func isNum(c rune) bool {
 }
 
 func isLetter(c rune) bool {
-	return 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
+	return ' ' <= c && c <= '~'
 }
 
 func quoteString(s string) string {
@@ -234,10 +263,20 @@ type pos struct {
 	start, end int
 }
 
+const (
+	spacesInTab = 2
+)
+
 func (p *pos) move(c rune) {
 	if c == '\n' {
 		p.line++
 		p.start, p.end = 0, 1
+		return
+	}
+	if c == '\t' {
+		for i := 0; i < spacesInTab; i++ {
+			p.move(' ')
+		}
 		return
 	}
 

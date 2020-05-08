@@ -16,6 +16,13 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenEOF, pos: pos{line: 0, start: 0, end: 1}},
 			},
 		},
+		"indent with tab": {
+			src: "\t1", // "   "
+			expected: []token{
+				{kind: tokenNum, literal: "1", pos: pos{line: 0, start: 2, end: 3}},
+				// {kind: tokenEOF, pos: pos{line: 0, start: 1, end: 2}},
+			},
+		},
 		"number": {
 			src: "1000",
 			expected: []token{
@@ -23,14 +30,14 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenEOF, pos: pos{line: 0, start: 4, end: 5}},
 			},
 		},
-		"string without quotation": {
+		"string without quotations": {
 			src: "aiueo",
 			expected: []token{
 				{kind: tokenString, literal: `"aiueo"`, pos: pos{line: 0, start: 0, end: 5}},
 				{kind: tokenEOF, pos: pos{line: 0, start: 5, end: 6}},
 			},
 		},
-		"string with quotation": {
+		"string with quotations": {
 			src: `"aiueo"`,
 			expected: []token{
 				{kind: tokenString, literal: `"aiueo"`, pos: pos{line: 0, start: 0, end: 7}},
