@@ -31,22 +31,19 @@ func (l *lexer) readToken() token {
 
 	switch char := l.currChar(); char {
 	case charEOF:
-		return token{
-			kind: tokenEOF,
-			pos:  l.pos,
-		}
+		return l.composeSingleTokenAs(tokenKinds[string(char)])
 	case '-':
 		if l.nextChar() != ' ' {
 			return l.composeLetters()
 		}
 
-		return l.composeSingleToken()
+		return l.composeSingleTokenAs(tokenKinds[string(char)])
 	case ':':
 		if l.nextChar() != ' ' && l.nextChar() != '\n' {
 			return l.composeLetters()
 		}
 
-		return l.composeSingleToken()
+		return l.composeSingleTokenAs(tokenKinds[string(char)])
 	case '"':
 		return l.composeStringWithQuotes()
 	default:
@@ -59,18 +56,6 @@ func (l *lexer) readToken() token {
 
 		return l.composeSingleTokenAs(tokenUnknown)
 	}
-}
-
-func (l *lexer) composeSingleToken() token {
-	t := token{
-		kind:    tokenKinds[string(l.currChar())],
-		literal: string(l.currChar()),
-		pos:     l.pos,
-	}
-
-	l.readChar()
-
-	return t
 }
 
 func (l *lexer) composeSingleTokenAs(kind tokenKind) token {
@@ -254,6 +239,7 @@ const (
 )
 
 var tokenKinds = map[string]tokenKind{
+	"\x00":  tokenEOF,
 	"-":     tokenHyphen,
 	":":     tokenColon,
 	"true":  tokenBool,

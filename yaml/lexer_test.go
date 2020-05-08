@@ -13,49 +13,49 @@ func TestReadToken(t *testing.T) {
 		"empty": {
 			src: "",
 			expected: []token{
-				{kind: tokenEOF, pos: pos{line: 0, start: 0, end: 1}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 0, end: 1}},
 			},
 		},
 		"indent with tab": {
-			src: "\t1", // "   "
+			src: "\t1",
 			expected: []token{
 				{kind: tokenNum, literal: "1", pos: pos{line: 0, start: 2, end: 3}},
-				// {kind: tokenEOF, pos: pos{line: 0, start: 1, end: 2}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 3, end: 4}},
 			},
 		},
 		"number": {
 			src: "1000",
 			expected: []token{
 				{kind: tokenNum, literal: "1000", pos: pos{line: 0, start: 0, end: 4}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 4, end: 5}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 4, end: 5}},
 			},
 		},
 		"string without quotations": {
 			src: "aiueo",
 			expected: []token{
 				{kind: tokenString, literal: `"aiueo"`, pos: pos{line: 0, start: 0, end: 5}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 5, end: 6}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 5, end: 6}},
 			},
 		},
 		"string with quotations": {
 			src: `"aiueo"`,
 			expected: []token{
 				{kind: tokenString, literal: `"aiueo"`, pos: pos{line: 0, start: 0, end: 7}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 7, end: 8}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 7, end: 8}},
 			},
 		},
 		"true": {
 			src: "true",
 			expected: []token{
 				{kind: tokenBool, literal: "true", pos: pos{line: 0, start: 0, end: 4}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 4, end: 5}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 4, end: 5}},
 			},
 		},
 		"false": {
 			src: "false",
 			expected: []token{
 				{kind: tokenBool, literal: "false", pos: pos{line: 0, start: 0, end: 5}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 5, end: 6}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 0, start: 5, end: 6}},
 			},
 		},
 		"array": {
@@ -77,7 +77,7 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenString, literal: `"a"`, pos: pos{line: 4, start: 2, end: 3}},
 				{kind: tokenColon, literal: ":", pos: pos{line: 4, start: 3, end: 4}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 4, start: 5, end: 6}},
-				{kind: tokenEOF, pos: pos{line: 4, start: 6, end: 7}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 4, start: 6, end: 7}},
 			},
 		},
 		"object": {
@@ -100,7 +100,7 @@ e:
 				{kind: tokenString, literal: `"e"`, pos: pos{line: 4, start: 0, end: 1}},
 				{kind: tokenColon, literal: ":", pos: pos{line: 4, start: 1, end: 2}},
 				{kind: tokenNum, literal: "4", pos: pos{line: 5, start: 4, end: 5}},
-				{kind: tokenEOF, pos: pos{line: 5, start: 5, end: 6}},
+				{kind: tokenEOF, literal: "\x00", pos: pos{line: 5, start: 5, end: 6}},
 			},
 		},
 	}
