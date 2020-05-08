@@ -1,12 +1,9 @@
 package json
 
 func newLexer(src []rune) lexer {
-	lex := lexer{
+	return lexer{
 		src: src,
 	}
-	lex.readChar()
-
-	return lex
 }
 
 type lexer struct {
@@ -21,6 +18,7 @@ const (
 )
 
 func (l *lexer) readToken() token {
+	l.readChar()
 	l.skipWhitespaces()
 
 	switch char := l.currChar(); char {
@@ -28,6 +26,42 @@ func (l *lexer) readToken() token {
 		return token{
 			kind: tokenEOF,
 			pos:  l.pos,
+		}
+	case '[':
+		return token{
+			kind:    tokenLBracket,
+			literal: string(char),
+			pos:     l.pos,
+		}
+	case ']':
+		return token{
+			kind:    tokenRBracket,
+			literal: string(char),
+			pos:     l.pos,
+		}
+	case '{':
+		return token{
+			kind:    tokenLBrace,
+			literal: string(char),
+			pos:     l.pos,
+		}
+	case '}':
+		return token{
+			kind:    tokenRBrace,
+			literal: string(char),
+			pos:     l.pos,
+		}
+	case ',':
+		return token{
+			kind:    tokenComma,
+			literal: string(char),
+			pos:     l.pos,
+		}
+	case ':':
+		return token{
+			kind:    tokenColon,
+			literal: string(char),
+			pos:     l.pos,
 		}
 	case '"':
 		t := token{
@@ -38,7 +72,7 @@ func (l *lexer) readToken() token {
 			},
 		}
 		t.literal = l.readString()
-		t.pos.end = l.pos.start
+		t.pos.end = l.pos.end
 
 		return t
 	default:
@@ -51,7 +85,7 @@ func (l *lexer) readToken() token {
 				},
 			}
 			t.literal = l.readNumber()
-			t.pos.end = l.pos.start
+			t.pos.end = l.pos.end
 
 			return t
 		}
@@ -72,11 +106,11 @@ func (l *lexer) skipWhitespaces() {
 func (l *lexer) readNumber() string {
 	start := l.currIndex
 
-	for isNum(l.currChar()) {
+	for isNum(l.nextChar()) {
 		l.readChar()
 	}
 
-	return string(l.src[start:l.currIndex])
+	return string(l.src[start:l.nextIndex])
 }
 
 func (l *lexer) readString() string {
@@ -84,16 +118,12 @@ func (l *lexer) readString() string {
 	for {
 		l.readChar()
 
-		if l.currChar() == charEOF {
-			break
-		}
-		if l.currChar() == '"' {
-			l.readChar()
+		if l.currChar() == charEOF || l.currChar() == '"' {
 			break
 		}
 	}
 
-	return string(l.src[start:l.currIndex])
+	return string(l.src[start:l.nextIndex])
 }
 
 func (l *lexer) readChar() {
@@ -142,6 +172,13 @@ type tokenKind string
 const (
 	tokenIllegal tokenKind = "illegal"
 	tokenEOF     tokenKind = "EOF"
+
+	tokenLBracket tokenKind = "["
+	tokenRBracket tokenKind = "]"
+	tokenLBrace   tokenKind = "{"
+	tokenRBrace   tokenKind = "}"
+	tokenComma    tokenKind = ","
+	tokenColon    tokenKind = ":"
 
 	tokenNum    tokenKind = "number"
 	tokenString tokenKind = "string"
