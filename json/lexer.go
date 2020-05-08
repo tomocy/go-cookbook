@@ -15,6 +15,9 @@ type lexer struct {
 
 const (
 	charEOF = 0
+
+	literalTrue  = "true"
+	literalFalse = "false"
 )
 
 func (l *lexer) readToken() token {
@@ -89,6 +92,24 @@ func (l *lexer) readToken() token {
 
 			return t
 		}
+		if isLetter(char) {
+			t := token{
+				pos: pos{
+					line:  l.pos.line,
+					start: l.pos.start,
+				},
+			}
+			t.literal = l.readLetters()
+			t.pos.end = l.pos.end
+
+			kind, ok := lookUpTokenKindOfLetters(t.literal)
+			t.kind = kind
+			if !ok {
+				t.kind = tokenIllegal
+			}
+
+			return t
+		}
 
 		return token{
 			kind: tokenIllegal,
@@ -103,6 +124,19 @@ func (l *lexer) skipWhitespaces() {
 	}
 }
 
+func (l *lexer) readString() string {
+	start := l.currIndex
+	for {
+		l.readChar()
+
+		if l.currChar() == charEOF || l.currChar() == '"' {
+			break
+		}
+	}
+
+	return string(l.src[start:l.nextIndex])
+}
+
 func (l *lexer) readNumber() string {
 	start := l.currIndex
 
@@ -113,14 +147,11 @@ func (l *lexer) readNumber() string {
 	return string(l.src[start:l.nextIndex])
 }
 
-func (l *lexer) readString() string {
+func (l *lexer) readLetters() string {
 	start := l.currIndex
-	for {
-		l.readChar()
 
-		if l.currChar() == charEOF || l.currChar() == '"' {
-			break
-		}
+	for isLetter(l.nextChar()) {
+		l.readChar()
 	}
 
 	return string(l.src[start:l.nextIndex])
@@ -157,6 +188,10 @@ func isNum(c rune) bool {
 	return '0' <= c && c <= '9'
 }
 
+func isLetter(c rune) bool {
+	return 'a' <= c && c <= 'z'
+}
+
 func isWhitespace(c rune) bool {
 	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
 }
@@ -182,7 +217,18 @@ const (
 
 	tokenNum    tokenKind = "number"
 	tokenString tokenKind = "string"
+	tokenBool   tokenKind = "bool"
 )
+
+var validIdents = map[string]tokenKind{
+	"true":  tokenBool,
+	"false": tokenBool,
+}
+
+func lookUpTokenKindOfLetters(s string) (tokenKind, bool) {
+	kind, ok := validIdents[s]
+	return kind, ok
+}
 
 type pos struct {
 	line       int

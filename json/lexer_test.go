@@ -36,6 +36,20 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenEOF, pos: pos{line: 0, start: 12, end: 13}},
 			},
 		},
+		"true": {
+			src: "true",
+			expected: []token{
+				{kind: tokenBool, literal: "true", pos: pos{line: 0, start: 0, end: 4}},
+				{kind: tokenEOF, pos: pos{line: 0, start: 4, end: 5}},
+			},
+		},
+		"false": {
+			src: "false",
+			expected: []token{
+				{kind: tokenBool, literal: "false", pos: pos{line: 0, start: 0, end: 5}},
+				{kind: tokenEOF, pos: pos{line: 0, start: 5, end: 6}},
+			},
+		},
 		"empty array": {
 			src: "[]",
 			expected: []token{
@@ -45,7 +59,7 @@ func TestReadToken(t *testing.T) {
 			},
 		},
 		"array": {
-			src: `[1, "two", 3, "four", {"a": 1}]`,
+			src: `[1, "two", 3, "four", {"a": 1}, true, false]`,
 			expected: []token{
 				{kind: tokenLBracket, literal: "[", pos: pos{line: 0, start: 0, end: 1}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 0, start: 1, end: 2}},
@@ -61,8 +75,12 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenColon, literal: ":", pos: pos{line: 0, start: 26, end: 27}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 0, start: 28, end: 29}},
 				{kind: tokenRBrace, literal: "}", pos: pos{line: 0, start: 29, end: 30}},
-				{kind: tokenRBracket, literal: "]", pos: pos{line: 0, start: 30, end: 31}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 31, end: 32}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 0, start: 30, end: 31}},
+				{kind: tokenBool, literal: "true", pos: pos{line: 0, start: 32, end: 36}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 0, start: 36, end: 37}},
+				{kind: tokenBool, literal: "false", pos: pos{line: 0, start: 38, end: 43}},
+				{kind: tokenRBracket, literal: "]", pos: pos{line: 0, start: 43, end: 44}},
+				{kind: tokenEOF, pos: pos{line: 0, start: 44, end: 45}},
 			},
 		},
 		"mulitline array": {
@@ -71,7 +89,9 @@ func TestReadToken(t *testing.T) {
 "two",
 3,
 "four",
-{"a": 1}
+{"a": 1},
+true,
+false
 ]`,
 			expected: []token{
 				{kind: tokenLBracket, literal: "[", pos: pos{line: 0, start: 0, end: 1}},
@@ -88,8 +108,12 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenColon, literal: ":", pos: pos{line: 5, start: 4, end: 5}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 5, start: 6, end: 7}},
 				{kind: tokenRBrace, literal: "}", pos: pos{line: 5, start: 7, end: 8}},
-				{kind: tokenRBracket, literal: "]", pos: pos{line: 6, start: 0, end: 1}},
-				{kind: tokenEOF, pos: pos{line: 6, start: 1, end: 2}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 5, start: 8, end: 9}},
+				{kind: tokenBool, literal: "true", pos: pos{line: 6, start: 0, end: 4}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 6, start: 4, end: 5}},
+				{kind: tokenBool, literal: "false", pos: pos{line: 7, start: 0, end: 5}},
+				{kind: tokenRBracket, literal: "]", pos: pos{line: 8, start: 0, end: 1}},
+				{kind: tokenEOF, pos: pos{line: 8, start: 1, end: 2}},
 			},
 		},
 		"empty object": {
@@ -101,7 +125,7 @@ func TestReadToken(t *testing.T) {
 			},
 		},
 		"object": {
-			src: `{"a": 1, "b": "two", "c": 3, "d": "four", "e": [5, "six"], "f": {"a": 1}}`,
+			src: `{"a": 1, "b": "two", "c": 3, "d": "four", "e": [5, "six"], "f": {"a": 1, "b": true}, "g": false}`,
 			expected: []token{
 				{kind: tokenLBrace, literal: "{", pos: pos{line: 0, start: 0, end: 1}},
 				{kind: tokenString, literal: `"a"`, pos: pos{line: 0, start: 1, end: 4}},
@@ -134,9 +158,17 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenString, literal: `"a"`, pos: pos{line: 0, start: 65, end: 68}},
 				{kind: tokenColon, literal: ":", pos: pos{line: 0, start: 68, end: 69}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 0, start: 70, end: 71}},
-				{kind: tokenRBrace, literal: "}", pos: pos{line: 0, start: 71, end: 72}},
-				{kind: tokenRBrace, literal: "}", pos: pos{line: 0, start: 72, end: 73}},
-				{kind: tokenEOF, pos: pos{line: 0, start: 73, end: 74}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 0, start: 71, end: 72}},
+				{kind: tokenString, literal: `"b"`, pos: pos{line: 0, start: 73, end: 76}},
+				{kind: tokenColon, literal: ":", pos: pos{line: 0, start: 76, end: 77}},
+				{kind: tokenBool, literal: "true", pos: pos{line: 0, start: 78, end: 82}},
+				{kind: tokenRBrace, literal: "}", pos: pos{line: 0, start: 82, end: 83}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 0, start: 83, end: 84}},
+				{kind: tokenString, literal: `"g"`, pos: pos{line: 0, start: 85, end: 88}},
+				{kind: tokenColon, literal: ":", pos: pos{line: 0, start: 88, end: 89}},
+				{kind: tokenBool, literal: "false", pos: pos{line: 0, start: 90, end: 95}},
+				{kind: tokenRBrace, literal: "}", pos: pos{line: 0, start: 95, end: 96}},
+				{kind: tokenEOF, pos: pos{line: 0, start: 96, end: 97}},
 			},
 		},
 		"multiline object": {
@@ -146,7 +178,8 @@ func TestReadToken(t *testing.T) {
 "c": 3,
 "d": "four",
 "e": [5, "six"],
-"f": {"a": 1}
+"f": {"a": 1, "b": true},
+"g": false
 }`,
 			expected: []token{
 				{kind: tokenLBrace, literal: "{", pos: pos{line: 0, start: 0, end: 1}},
@@ -180,9 +213,17 @@ func TestReadToken(t *testing.T) {
 				{kind: tokenString, literal: `"a"`, pos: pos{line: 6, start: 6, end: 9}},
 				{kind: tokenColon, literal: ":", pos: pos{line: 6, start: 9, end: 10}},
 				{kind: tokenNum, literal: "1", pos: pos{line: 6, start: 11, end: 12}},
-				{kind: tokenRBrace, literal: "}", pos: pos{line: 6, start: 12, end: 13}},
-				{kind: tokenRBrace, literal: "}", pos: pos{line: 7, start: 0, end: 1}},
-				{kind: tokenEOF, pos: pos{line: 7, start: 1, end: 2}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 6, start: 12, end: 13}},
+				{kind: tokenString, literal: `"b"`, pos: pos{line: 6, start: 14, end: 17}},
+				{kind: tokenColon, literal: ":", pos: pos{line: 6, start: 17, end: 18}},
+				{kind: tokenBool, literal: "true", pos: pos{line: 6, start: 19, end: 23}},
+				{kind: tokenRBrace, literal: "}", pos: pos{line: 6, start: 23, end: 24}},
+				{kind: tokenComma, literal: ",", pos: pos{line: 6, start: 24, end: 25}},
+				{kind: tokenString, literal: `"g"`, pos: pos{line: 7, start: 0, end: 3}},
+				{kind: tokenColon, literal: ":", pos: pos{line: 7, start: 3, end: 4}},
+				{kind: tokenBool, literal: "false", pos: pos{line: 7, start: 5, end: 10}},
+				{kind: tokenRBrace, literal: "}", pos: pos{line: 8, start: 0, end: 1}},
+				{kind: tokenEOF, pos: pos{line: 8, start: 1, end: 2}},
 			},
 		},
 	}
