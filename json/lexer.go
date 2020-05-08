@@ -27,88 +27,24 @@ func (l *lexer) readToken() token {
 	switch char := l.currChar(); char {
 	case charEOF:
 		return token{
-			kind: tokenEOF,
-			pos:  l.pos,
-		}
-	case '[':
-		return token{
-			kind:    tokenLBracket,
-			literal: string(char),
+			kind:    tokenKinds[string(char)],
+			literal: "",
 			pos:     l.pos,
 		}
-	case ']':
+	case '[', ']', '{', '}', ',', ':':
 		return token{
-			kind:    tokenRBracket,
-			literal: string(char),
-			pos:     l.pos,
-		}
-	case '{':
-		return token{
-			kind:    tokenLBrace,
-			literal: string(char),
-			pos:     l.pos,
-		}
-	case '}':
-		return token{
-			kind:    tokenRBrace,
-			literal: string(char),
-			pos:     l.pos,
-		}
-	case ',':
-		return token{
-			kind:    tokenComma,
-			literal: string(char),
-			pos:     l.pos,
-		}
-	case ':':
-		return token{
-			kind:    tokenColon,
+			kind:    tokenKinds[string(char)],
 			literal: string(char),
 			pos:     l.pos,
 		}
 	case '"':
-		t := token{
-			kind: tokenString,
-			pos: pos{
-				line:  l.pos.line,
-				start: l.pos.start,
-			},
-		}
-		t.literal = l.readString()
-		t.pos.end = l.pos.end
-
-		return t
+		return l.composeString()
 	default:
 		if isNum(char) {
-			t := token{
-				kind: tokenNum,
-				pos: pos{
-					line:  l.pos.line,
-					start: l.pos.start,
-				},
-			}
-			t.literal = l.readNumber()
-			t.pos.end = l.pos.end
-
-			return t
+			return l.composeNum()
 		}
 		if isLetter(char) {
-			t := token{
-				pos: pos{
-					line:  l.pos.line,
-					start: l.pos.start,
-				},
-			}
-			t.literal = l.readLetters()
-			t.pos.end = l.pos.end
-
-			kind, ok := lookUpTokenKindOfLetters(t.literal)
-			t.kind = kind
-			if !ok {
-				t.kind = tokenIllegal
-			}
-
-			return t
+			return l.composeLetters()
 		}
 
 		return token{
@@ -124,6 +60,20 @@ func (l *lexer) skipWhitespaces() {
 	}
 }
 
+func (l *lexer) composeString() token {
+	t := token{
+		kind: tokenString,
+		pos: pos{
+			line:  l.pos.line,
+			start: l.pos.start,
+		},
+	}
+	t.literal = l.readString()
+	t.pos.end = l.pos.end
+
+	return t
+}
+
 func (l *lexer) readString() string {
 	start := l.currIndex
 	for {
@@ -137,6 +87,20 @@ func (l *lexer) readString() string {
 	return string(l.src[start:l.nextIndex])
 }
 
+func (l *lexer) composeNum() token {
+	t := token{
+		kind: tokenNum,
+		pos: pos{
+			line:  l.pos.line,
+			start: l.pos.start,
+		},
+	}
+	t.literal = l.readNumber()
+	t.pos.end = l.pos.end
+
+	return t
+}
+
 func (l *lexer) readNumber() string {
 	start := l.currIndex
 
@@ -145,6 +109,25 @@ func (l *lexer) readNumber() string {
 	}
 
 	return string(l.src[start:l.nextIndex])
+}
+
+func (l *lexer) composeLetters() token {
+	t := token{
+		pos: pos{
+			line:  l.pos.line,
+			start: l.pos.start,
+		},
+	}
+	t.literal = l.readLetters()
+	t.pos.end = l.pos.end
+
+	kind, ok := tokenKinds[t.literal]
+	t.kind = kind
+	if !ok {
+		t.kind = tokenIllegal
+	}
+
+	return t
 }
 
 func (l *lexer) readLetters() string {
@@ -220,14 +203,16 @@ const (
 	tokenBool   tokenKind = "bool"
 )
 
-var validIdents = map[string]tokenKind{
-	"true":  tokenBool,
-	"false": tokenBool,
-}
-
-func lookUpTokenKindOfLetters(s string) (tokenKind, bool) {
-	kind, ok := validIdents[s]
-	return kind, ok
+var tokenKinds = map[string]tokenKind{
+	string(charEOF): tokenEOF,
+	"[":             tokenLBracket,
+	"]":             tokenRBracket,
+	"{":             tokenLBrace,
+	"}":             tokenRBrace,
+	",":             tokenComma,
+	":":             tokenColon,
+	"true":          tokenBool,
+	"false":         tokenBool,
 }
 
 type pos struct {
