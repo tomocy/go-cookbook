@@ -1,0 +1,31 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth authz server</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-10 col-md-6">
+        <h1>Client</h1>
+        <div class="client">
+          <div class="row">
+            <div class="col-2 label">ID: </div>
+            <div class="col-10 value">{{ .Client.ID }}</div>
+          </div>
+          <div class="row">
+            <div class="col-2 label">Secret: </div>
+            <div class="col-10 value">{{ .Client.Secret }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
