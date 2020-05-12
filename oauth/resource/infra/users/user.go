@@ -12,14 +12,14 @@ import (
 	"github.com/tomocy/go-cookbook/oauth/resource"
 )
 
-func NewHTTPService(createEndpoint string) HTTPService {
+func NewHTTPService(addr string) HTTPService {
 	return HTTPService{
-		createEndpoint: createEndpoint,
+		addr: addr,
 	}
 }
 
 type HTTPService struct {
-	createEndpoint string
+	addr string
 }
 
 func (s HTTPService) Create(ctx context.Context, email, pass string) (resource.UserID, error) {
@@ -55,12 +55,13 @@ func (s HTTPService) Create(ctx context.Context, email, pass string) (resource.U
 }
 
 func (s HTTPService) buildCreateRequest(ctx context.Context, email, pass string) (*http.Request, error) {
+	uri := fmt.Sprintf("http://%s/users", strings.Trim(s.addr, "/"))
 	vals := url.Values{
 		"email":    []string{email},
 		"password": []string{pass},
 	}
 	body := strings.NewReader(vals.Encode())
-	r, err := http.NewRequestWithContext(ctx, http.MethodPost, s.createEndpoint, body)
+	r, err := http.NewRequestWithContext(ctx, http.MethodPost, uri, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
