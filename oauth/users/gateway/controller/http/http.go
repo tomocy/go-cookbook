@@ -62,6 +62,7 @@ func (s Server) createUser() http.Handler {
 			return
 		}
 
+		w.WriteHeader(http.StatusCreated)
 		if err := s.renderer.RenderUser(w, user); err != nil {
 			s.renderErr(w, "render user", err)
 		}
