@@ -48,7 +48,7 @@ func (u *User) setID(id UserID) error {
 	return nil
 }
 
-func (u User) Emai() string {
+func (u User) Email() string {
 	return u.email
 }
 
