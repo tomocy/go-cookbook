@@ -1,4 +1,4 @@
-package http
+package controller
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 	"github.com/tomocy/go-cookbook/oauth/users/usecase"
 )
 
-func NewServer(w io.Writer, addr string, userRepo users.UserRepo, ren Renderer) Server {
-	return Server{
+func NewHTTPServer(w io.Writer, addr string, userRepo users.UserRepo, ren Renderer) HTTPServer {
+	return HTTPServer{
 		w:        w,
 		addr:     addr,
 		userRepo: userRepo,
@@ -19,14 +19,14 @@ func NewServer(w io.Writer, addr string, userRepo users.UserRepo, ren Renderer) 
 	}
 }
 
-type Server struct {
+type HTTPServer struct {
 	w        io.Writer
 	addr     string
 	userRepo users.UserRepo
 	renderer Renderer
 }
 
-func (s Server) Run() error {
+func (s HTTPServer) Run() error {
 	r := chi.NewRouter()
 
 	r.Route("/users", func(r chi.Router) {
@@ -47,7 +47,7 @@ func handlerFunc(h http.Handler) http.HandlerFunc {
 	}
 }
 
-func (s Server) createUser() http.Handler {
+func (s HTTPServer) createUser() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			s.renderErr(w, "parse form", err)
@@ -69,7 +69,7 @@ func (s Server) createUser() http.Handler {
 	})
 }
 
-func (s Server) authenticateUser() http.Handler {
+func (s HTTPServer) authenticateUser() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			s.renderErr(w, "parse form", err)
@@ -95,15 +95,15 @@ func (s Server) authenticateUser() http.Handler {
 	})
 }
 
-func (s Server) logfln(format string, as ...interface{}) {
+func (s HTTPServer) logfln(format string, as ...interface{}) {
 	s.logf(format+"\n", as...)
 }
 
-func (s Server) logf(format string, as ...interface{}) {
+func (s HTTPServer) logf(format string, as ...interface{}) {
 	fmt.Fprintf(s.w, format, as...)
 }
 
-func (s Server) renderErr(w http.ResponseWriter, did string, err error) {
+func (s HTTPServer) renderErr(w http.ResponseWriter, did string, err error) {
 	if users.IsErrInput(err) {
 		s.renderErrMessage(w, http.StatusBadRequest, err.Error())
 		return
@@ -113,11 +113,11 @@ func (s Server) renderErr(w http.ResponseWriter, did string, err error) {
 	s.renderErrStatus(w, http.StatusInternalServerError)
 }
 
-func (s Server) renderErrStatus(w http.ResponseWriter, code int) {
+func (s HTTPServer) renderErrStatus(w http.ResponseWriter, code int) {
 	s.renderErrMessage(w, code, http.StatusText(code))
 }
 
-func (s Server) renderErrMessage(w http.ResponseWriter, code int, msg string) {
+func (s HTTPServer) renderErrMessage(w http.ResponseWriter, code int, msg string) {
 	w.WriteHeader(code)
 	if err := s.renderer.RenderErr(w, fmt.Errorf("%s", msg)); err != nil {
 		s.logfln("failed to render err: %s", err)

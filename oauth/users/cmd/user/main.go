@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/tomocy/go-cookbook/oauth/users/gateway/controller/http"
-	"github.com/tomocy/go-cookbook/oauth/users/gateway/presentation/json"
+	"github.com/tomocy/go-cookbook/oauth/users/gateway/controller"
+	"github.com/tomocy/go-cookbook/oauth/users/gateway/presentation"
 	"github.com/tomocy/go-cookbook/oauth/users/infra/memory"
 )
 
@@ -27,8 +27,9 @@ func run(w io.Writer, args []string) error {
 	var (
 		userRepo = memory.NewUserRepo()
 	)
-	serv := http.NewServer(w, conf.addr, userRepo, json.Renderer)
-	if err := serv.Run(); err != nil {
+	ren := presentation.JSON
+	con := controller.NewHTTPServer(w, conf.addr, userRepo, ren)
+	if err := con.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
 
