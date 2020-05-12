@@ -7,23 +7,55 @@ import (
 	"github.com/tomocy/go-cookbook/oauth/resource"
 )
 
-func NewFindUser(repo resource.UserRepo) FindUser {
-	return FindUser{
+func NewCreateUser(serv resource.UserService, repo resource.UserRepo) CreateUser {
+	return CreateUser{
+		serv: serv,
 		repo: repo,
 	}
 }
 
-type FindUser struct {
+type CreateUser struct {
+	serv resource.UserService
 	repo resource.UserRepo
 }
 
-func (u FindUser) Do(id resource.UserID) (resource.User, bool, error) {
+func (u CreateUser) Do(name, email, pass string) (resource.User, error) {
 	ctx := context.TODO()
 
-	user, found, err := u.repo.Find(ctx, id)
+	id, err := u.serv.Create(ctx, email, pass)
 	if err != nil {
-		return resource.User{}, false, fmt.Errorf("failed to find user: %w", err)
+		return resource.User{}, fmt.Errorf("failed to create user with service: %w", err)
 	}
 
-	return user, found, nil
+	user, err := resource.NewUser(id, name, email)
+	if err != nil {
+		return resource.User{}, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	if err := u.repo.Save(ctx, user); err != nil {
+		return resource.User{}, fmt.Errorf("failed to save user: %w", err)
+	}
+
+	return user, nil
 }
+
+// func NewFindUser(repo resource.UserRepo) FindUser {
+// 	return FindUser{
+// 		repo: repo,
+// 	}
+// }
+
+// type FindUser struct {
+// 	repo resource.UserRepo
+// }
+
+// func (u FindUser) Do(id resource.UserID) (resource.User, bool, error) {
+// 	ctx := context.TODO()
+
+// 	user, found, err := u.repo.Find(ctx, id)
+// 	if err != nil {
+// 		return resource.User{}, false, fmt.Errorf("failed to find user: %w", err)
+// 	}
+
+// 	return user, found, nil
+// }
