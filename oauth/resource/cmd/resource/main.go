@@ -6,7 +6,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/tomocy/go-cookbook/oauth/resource/presentation/http"
+	"github.com/tomocy/go-cookbook/oauth/resource/gateway/controller"
+	"github.com/tomocy/go-cookbook/oauth/resource/infra/memory"
+	"github.com/tomocy/go-cookbook/oauth/resource/infra/users"
 )
 
 func main() {
@@ -22,8 +24,12 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
-	serv := http.NewServer(w, conf.addr, nil)
-	if err := serv.Run(); err != nil {
+	var (
+		userServ = users.NewHTTPService(conf.usersAddr)
+		userRepo = memory.NewUserRepo()
+	)
+	ctller := controller.NewHTTPServer(w, conf.addr, userServ, userRepo)
+	if err := ctller.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
 
@@ -31,7 +37,8 @@ func run(w io.Writer, args []string) error {
 }
 
 type config struct {
-	addr string
+	addr      string
+	usersAddr string
 }
 
 func (c *config) parse(args []string) error {
@@ -41,6 +48,7 @@ func (c *config) parse(args []string) error {
 
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.StringVar(&c.addr, "addr", ":80", "the address to listen and serve")
+	flags.StringVar(&c.usersAddr, "users-addr", "localhost:8080", "the address of users service")
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
 	}
