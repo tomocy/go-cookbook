@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/tomocy/go-cookbook/oauth/resource"
 )
@@ -23,7 +24,7 @@ type HTTPService struct {
 }
 
 func (s HTTPService) Create(ctx context.Context, email, pass string) (resource.UserID, error) {
-	ctx, cancel := context.WithTimeout(ctx, 0)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	req, err := s.buildCreateRequest(ctx, email, pass)
@@ -66,7 +67,7 @@ func (s HTTPService) buildCreateRequest(ctx context.Context, email, pass string)
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	r.Header.Set("Content-Type", "x-www-form-urlencode")
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	return r, nil
 }
