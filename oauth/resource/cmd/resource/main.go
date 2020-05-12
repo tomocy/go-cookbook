@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/tomocy/go-cookbook/oauth"
 	"github.com/tomocy/go-cookbook/oauth/resource/gateway/controller"
 	"github.com/tomocy/go-cookbook/oauth/resource/gateway/presentation"
 	"github.com/tomocy/go-cookbook/oauth/resource/infra/memory"
@@ -25,12 +26,18 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
+	clientCredsServ := oauth.Client{}
+	ren := presentation.HTML
 	var (
 		userServ = users.NewHTTPService(conf.usersAddr)
 		userRepo = memory.NewUserRepo()
 	)
-	ren := presentation.HTML
-	con := controller.NewHTTPServer(w, conf.addr, ren, userServ, userRepo)
+	con := controller.NewHTTPServer(
+		w, conf.addr,
+		clientCredsServ,
+		ren,
+		userServ, userRepo,
+	)
 	if err := con.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
