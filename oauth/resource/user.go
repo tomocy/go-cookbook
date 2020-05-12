@@ -6,7 +6,6 @@ import (
 )
 
 type UserRepo interface {
-	Find(context.Context, UserID) (User, bool, error)
 	Save(context.Context, User) error
 }
 
