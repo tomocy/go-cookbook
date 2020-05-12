@@ -1,6 +1,9 @@
 package resource
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 type UserRepo interface {
 	Find(context.Context, UserID) (User, bool, error)
@@ -76,7 +79,25 @@ func (u *User) setName(name string) error {
 
 type UserID string
 
+func IsErrInput(err error) bool {
+	if _, ok := err.(errInput); ok {
+		return true
+	}
+
+	err = errors.Unwrap(err)
+	if err == nil {
+		return false
+	}
+	return IsErrInput(err)
+}
+
+type errInput interface {
+	ErrInput()
+}
+
 type ErrInvalidArg string
+
+func (ErrInvalidArg) ErrInput() {}
 
 func (e ErrInvalidArg) Error() string {
 	return string(e)
