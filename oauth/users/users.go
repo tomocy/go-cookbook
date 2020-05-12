@@ -1,7 +1,8 @@
-package authz
+package users
 
 import (
 	"context"
+	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -93,7 +94,26 @@ func (p Password) IsSame(plain string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(p), []byte(plain)) == nil
 }
 
+func IsErrInput(err error) bool {
+	if _, ok := err.(errInput); ok {
+		return true
+	}
+
+	err = errors.Unwrap(err)
+	if err == nil {
+		return false
+	}
+
+	return IsErrInput(err)
+}
+
+type errInput interface {
+	ErrInput()
+}
+
 type ErrInvalidArg string
+
+func (ErrInvalidArg) ErrInput() {}
 
 func (e ErrInvalidArg) Error() string {
 	return string(e)

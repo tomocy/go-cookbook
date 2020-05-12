@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/tomocy/go-cookbook/oauth/users/gateway/controller/http"
+	"github.com/tomocy/go-cookbook/oauth/users/gateway/presentation/json"
+	"github.com/tomocy/go-cookbook/oauth/users/infra/memory"
 )
 
 func main() {
@@ -20,10 +24,13 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
-	// serv := http.NewServer(w, conf.addr, nil)
-	// if err := serv.Run(); err != nil {
-	// 	return fmt.Errorf("failed to run server: %w", err)
-	// }
+	var (
+		userRepo = memory.NewUserRepo()
+	)
+	serv := http.NewServer(w, conf.addr, userRepo, json.Renderer)
+	if err := serv.Run(); err != nil {
+		return fmt.Errorf("failed to run server: %w", err)
+	}
 
 	return nil
 }
