@@ -13,15 +13,15 @@ type UserService interface {
 	Create(context.Context, string, string) (UserID, error)
 }
 
-func NewUser(id UserID, email, name string) (User, error) {
+func NewUser(id UserID, name, email string) (User, error) {
 	var u User
 	if err := u.setID(id); err != nil {
 		return User{}, err
 	}
-	if err := u.setEmail(email); err != nil {
+	if err := u.setName(name); err != nil {
 		return User{}, err
 	}
-	if err := u.setName(name); err != nil {
+	if err := u.setEmail(email); err != nil {
 		return User{}, err
 	}
 
@@ -30,8 +30,8 @@ func NewUser(id UserID, email, name string) (User, error) {
 
 type User struct {
 	id    UserID
-	email string
 	name  string
+	email string
 }
 
 func (u User) ID() UserID {
