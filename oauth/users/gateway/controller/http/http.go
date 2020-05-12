@@ -31,6 +31,10 @@ func (s Server) Run() error {
 
 	r.Route("/users", func(r chi.Router) {
 		r.Post("/", handlerFunc(s.createUser()))
+
+		r.Route("/authns", func(r chi.Router) {
+			r.Post("/", handlerFunc(s.authenticateUser()))
+		})
 	})
 
 	s.logfln("listen and serve on %s", s.addr)
@@ -60,6 +64,32 @@ func (s Server) createUser() http.Handler {
 
 		if err := s.renderer.RenderUser(w, user); err != nil {
 			s.renderErr(w, "render user", err)
+		}
+	})
+}
+
+func (s Server) authenticateUser() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			s.renderErr(w, "parse form", err)
+			return
+		}
+
+		email, pass := r.PostFormValue("email"), r.PostFormValue("password")
+		authenticate := usecase.NewAuthenticateUser(s.userRepo)
+		user, ok, err := authenticate.Do(email, pass)
+		if err != nil {
+			s.renderErr(w, "authenticate user", err)
+			return
+		}
+		if !ok {
+			s.renderErrMessage(w, http.StatusBadRequest, "invalid credentials")
+			return
+		}
+
+		if err := s.renderer.RenderUser(w, user); err != nil {
+			s.renderErr(w, "render user", err)
+			return
 		}
 	})
 }
