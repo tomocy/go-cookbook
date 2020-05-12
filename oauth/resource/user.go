@@ -6,6 +6,10 @@ type UserRepo interface {
 	Find(context.Context, UserID) (User, bool, error)
 }
 
+type UserService interface {
+	Create(context.Context, string, string) (UserID, error)
+}
+
 func NewUser(id UserID, name string) (User, error) {
 	var u User
 	if err := u.setID(id); err != nil {
