@@ -30,8 +30,8 @@ func run(w io.Writer, args []string) error {
 		userRepo = memory.NewUserRepo()
 	)
 	ren := presentation.HTML
-	ctller := controller.NewHTTPServer(w, conf.addr, ren, userServ, userRepo)
-	if err := ctller.Run(); err != nil {
+	con := controller.NewHTTPServer(w, conf.addr, ren, userServ, userRepo)
+	if err := con.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
 
