@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/tomocy/go-cookbook/oauth/resource/gateway/controller"
+	"github.com/tomocy/go-cookbook/oauth/resource/gateway/presentation"
 	"github.com/tomocy/go-cookbook/oauth/resource/infra/memory"
 	"github.com/tomocy/go-cookbook/oauth/resource/infra/users"
 )
@@ -28,7 +29,8 @@ func run(w io.Writer, args []string) error {
 		userServ = users.NewHTTPService(conf.usersAddr)
 		userRepo = memory.NewUserRepo()
 	)
-	ctller := controller.NewHTTPServer(w, conf.addr, userServ, userRepo)
+	ren := presentation.HTML
+	ctller := controller.NewHTTPServer(w, conf.addr, ren, userServ, userRepo)
 	if err := ctller.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
