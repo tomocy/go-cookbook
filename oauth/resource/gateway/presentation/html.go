@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -9,20 +10,24 @@ import (
 )
 
 const (
+	htmlTemplNewUser    = "user.new"
 	htmlTemplSingleUser = "user.single"
+	htmlTemplErr        = "error"
 )
 
 var HTML = html{
+	htmlTemplNewUser:    template.Must(template.ParseFiles("views/html/templates/user/new.html")),
 	htmlTemplSingleUser: template.Must(template.ParseFiles("views/html/templates/user/single.html")),
+	htmlTemplErr:        template.Must(template.ParseFiles("views/html/templates/error.html")),
 }
 
 type html map[string]*template.Template
 
-func (h html) RenderCreatedUser(w io.Writer, user resource.User) error {
-	return h.renderUser(w, user)
+func (h html) RenderCreateUserPage(w io.Writer) error {
+	return h[htmlTemplNewUser].Execute(w, nil)
 }
 
-func (h html) renderUser(w io.Writer, user resource.User) error {
+func (h html) RenderUser(w io.Writer, user resource.User) error {
 	data := map[string]interface{}{
 		"User": htmlSingleUser{
 			ID:    string(user.ID()),
@@ -40,8 +45,8 @@ type htmlSingleUser struct {
 	Email string
 }
 
-func (h html) RenderCreateUserErr(w io.Writer, err error) error {
-	return h.renderErr(w, htmlTemplSingleUser, err)
+func (h html) RenderErr(w io.Writer, err error) error {
+	return h.renderErr(w, htmlTemplErr, err)
 }
 
 func (h html) renderErr(w io.Writer, name string, err error) error {
@@ -50,6 +55,9 @@ func (h html) renderErr(w io.Writer, name string, err error) error {
 		return fmt.Errorf("no such template")
 	}
 
+	if unwrapped := errors.Unwrap(err); unwrapped != nil {
+		err = unwrapped
+	}
 	data := map[string]interface{}{
 		"Error": err.Error(),
 	}

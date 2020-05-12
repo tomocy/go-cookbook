@@ -44,7 +44,12 @@ func (s HTTPService) Create(ctx context.Context, email, pass string) (resource.U
 			return "", fmt.Errorf("failed to decode error response: %w", err)
 		}
 
-		return "", errResp
+		err = errResp
+		if resp.StatusCode == http.StatusBadRequest {
+			err = resource.ErrInvalidArg(errResp.Message)
+		}
+
+		return "", err
 	}
 
 	userResp, err := s.decodeUserResp(resp.Body)
@@ -98,6 +103,6 @@ type errResp struct {
 	Message string `json:"error"`
 }
 
-func (r errResp) Error() string {
-	return r.Message
+func (e errResp) Error() string {
+	return e.Message
 }

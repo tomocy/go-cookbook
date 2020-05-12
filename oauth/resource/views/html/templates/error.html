@@ -12,13 +12,13 @@
   <div class="container py-5">
     <div class="row justify-content-center">
       <div class="col-10 col-sm-8 col-md-6">
+        {{ with .Error }}
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">{{ .User.Name }}</h5>
-            <p class="card-text">ID: {{ .User.ID }}</p>
-            <p class="card-text">Email: {{ .User.Email }}</p>
+            <p class="card-text text-danger text-truncate">{{ . }}</p>
           </div>
         </div>
+        {{ end }}
       </div>
     </div>
   </div>
