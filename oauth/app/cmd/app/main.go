@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/tomocy/go-cookbook/oauth/app/gateway/controller"
+	"github.com/tomocy/go-cookbook/oauth/app/gateway/presentation"
 )
 
 func main() {
@@ -22,7 +23,8 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
-	con := controller.NewHTTPServer(w, conf.addr)
+	ren := presentation.HTML
+	con := controller.NewHTTPServer(w, conf.addr, ren)
 	if err := con.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
