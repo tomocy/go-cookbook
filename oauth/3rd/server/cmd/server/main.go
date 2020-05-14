@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/tomocy/go-cookbook/oauth/3rd/server/gateway/controller"
 )
 
 func main() {
@@ -18,6 +20,11 @@ func run(w io.Writer, args []string) error {
 	var conf config
 	if err := conf.parse(args); err != nil {
 		return fmt.Errorf("failed to parse args: %w", err)
+	}
+
+	serv := controller.NewHTTPServer(w, conf.addr)
+	if err := serv.Run(); err != nil {
+		return fmt.Errorf("failed to run http server: %w", err)
 	}
 
 	return nil
