@@ -9,9 +9,11 @@ import (
 	"github.com/tomocy/go-cookbook/oauth/3rd/server"
 )
 
-type OwnerService struct{}
+var OwnerService ownerService
 
-func (s OwnerService) Fetch(ctx context.Context, tok string) (server.Owner, error) {
+type ownerService struct{}
+
+func (s ownerService) Fetch(ctx context.Context, tok string) (server.Owner, error) {
 	req, err := s.buildFetchRequest(ctx, tok)
 	if err != nil {
 		return server.Owner{}, fmt.Errorf("failed to build request: %w", err)
@@ -38,7 +40,7 @@ func (s OwnerService) Fetch(ctx context.Context, tok string) (server.Owner, erro
 	}, nil
 }
 
-func (OwnerService) buildFetchRequest(ctx context.Context, tok string) (*http.Request, error) {
+func (ownerService) buildFetchRequest(ctx context.Context, tok string) (*http.Request, error) {
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:8081/owners", nil)
 	if err != nil {
 		return nil, err
