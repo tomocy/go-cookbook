@@ -1,5 +1,6 @@
 package server
 
 type Owner struct {
-	Name string
+	Name     string
+	Provider string
 }
