@@ -58,4 +58,5 @@ func (s HTTPServer) logf(format string, as ...interface{}) {
 
 type renderer interface {
 	ShowFetchOwnerPage(w io.Writer) error
+	ShowErr(io.Writer, error) error
 }
