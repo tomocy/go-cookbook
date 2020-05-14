@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -51,18 +52,52 @@ func (s HTTPServer) showFetchOwnerPage() http.Handler {
 }
 
 func (s HTTPServer) fetchOwner() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		prov := chi.URLParam(r, "provider")
-		owner := server.Owner{
-			Name:     "aiueo",
-			Provider: prov,
-		}
+	return s.requireUserAuthenticated(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			prov := chi.URLParam(r, "provider")
+			owner := server.Owner{
+				Name:     "aiueo",
+				Provider: prov,
+			}
 
-		if err := s.renderer.ShowOwner(w, owner); err != nil {
-			s.renderErr(w, err)
+			if err := s.renderer.ShowOwner(w, owner); err != nil {
+				s.renderErr(w, err)
+				return
+			}
+		}),
+	)
+}
+
+func (s HTTPServer) requireUserAuthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if next == nil {
 			return
 		}
+
+		r = s.pushIntoContext(r, ctxAuthenticatedUserID, "test_user_id")
+
+		next.ServeHTTP(w, r)
 	})
+}
+
+type ctxKey string
+
+const (
+	ctxAuthenticatedUserID = "authenticatedUserID"
+)
+
+func (s HTTPServer) popAuthenticatedUserID(r *http.Request) string {
+	id, _ := s.popFromContext(r, ctxAuthenticatedUserID).(string)
+	return id
+}
+
+func (s HTTPServer) pushIntoContext(r *http.Request, key, val interface{}) *http.Request {
+	ctx := context.WithValue(r.Context(), key, val)
+	return r.WithContext(ctx)
+}
+
+func (s HTTPServer) popFromContext(r *http.Request, key interface{}) interface{} {
+	return r.Context().Value(key)
 }
 
 func (s HTTPServer) renderErr(w io.Writer, err error) {
