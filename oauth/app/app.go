@@ -5,3 +5,9 @@ type User struct {
 }
 
 type UserID string
+
+type Provider struct {
+	name   string
+	userID UserID
+	tok    string
+}
