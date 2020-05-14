@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	htmlTemplateFetchOwner = "user.owner.fetch"
-	htmlTemplateOwner      = "user.owner.single"
+	htmlTemplateFetchOwner = "owner.fetch"
+	htmlTemplateOwner      = "owner.single"
 	htmlTemplateErr        = "error"
 )
 
 var HTML = html{
-	htmlTemplateFetchOwner: template.Must(template.ParseFiles("views/html/templates/user/owner/fetch.html")),
-	htmlTemplateOwner:      template.Must(template.ParseFiles("views/html/templates/user/owner/single.html")),
+	htmlTemplateFetchOwner: template.Must(template.ParseFiles("views/html/templates/owner/fetch.html")),
+	htmlTemplateOwner:      template.Must(template.ParseFiles("views/html/templates/owner/single.html")),
 	htmlTemplateErr:        template.Must(template.ParseFiles("views/html/templates/error.html")),
 }
 
