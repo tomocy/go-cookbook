@@ -22,7 +22,7 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed to parse args: %w", err)
 	}
 
-	serv := controller.NewHTTPServer(w, conf.addr)
+	serv := controller.NewHTTPServer(w, conf.addr, nil)
 	if err := serv.Run(); err != nil {
 		return fmt.Errorf("failed to run http server: %w", err)
 	}

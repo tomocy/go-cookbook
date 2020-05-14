@@ -8,16 +8,18 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func NewHTTPServer(w io.Writer, addr string) HTTPServer {
+func NewHTTPServer(w io.Writer, addr string, ren renderer) HTTPServer {
 	return HTTPServer{
-		w:    w,
-		addr: addr,
+		w:        w,
+		addr:     addr,
+		renderer: ren,
 	}
 }
 
 type HTTPServer struct {
-	w    io.Writer
-	addr string
+	w        io.Writer
+	addr     string
+	renderer renderer
 }
 
 func (s HTTPServer) Run() error {
@@ -33,4 +35,8 @@ func (s HTTPServer) logfln(format string, as ...interface{}) {
 
 func (s HTTPServer) logf(format string, as ...interface{}) {
 	fmt.Fprintf(s.w, format, as...)
+}
+
+type renderer interface {
+	ShowFetchOwnerPage(w io.Writer) error
 }
