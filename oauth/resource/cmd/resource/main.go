@@ -26,7 +26,19 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
-	clientCredsServ := oauth.Client{}
+	clientCredsServ := &oauth.Client{
+		AuthzServerEndpoint: oauth.Endpoint{
+			Addr: conf.authzAddr,
+			Paths: map[string]string{
+				oauth.PathIntrospection: "/introspections",
+				oauth.PathToken:         "/tokens",
+			},
+		},
+		Creds: oauth.Creds{
+			ID:     "aiueo_id",
+			Secret: "aiueo_secret",
+		},
+	}
 	ren := presentation.HTML
 	var (
 		userServ = users.NewHTTPService(conf.usersAddr)
@@ -47,6 +59,7 @@ func run(w io.Writer, args []string) error {
 
 type config struct {
 	addr      string
+	authzAddr string
 	usersAddr string
 }
 
@@ -57,7 +70,8 @@ func (c *config) parse(args []string) error {
 
 	flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	flags.StringVar(&c.addr, "addr", ":80", "the address to listen and serve")
-	flags.StringVar(&c.usersAddr, "users-addr", "localhost:8080", "the address of users service")
+	flags.StringVar(&c.authzAddr, "authz-addr", "localhost:8080", "the address of authorization service")
+	flags.StringVar(&c.usersAddr, "users-addr", "localhost:8081", "the address of users service")
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
 	}

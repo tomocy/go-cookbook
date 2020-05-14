@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"time"
 )
@@ -238,6 +239,11 @@ func (t AccessToken) IsExpired() bool {
 	return diff < 0 || 1*time.Hour < diff
 }
 
+type Introspection struct {
+	Active   bool   `json:"active"`
+	Username string `json:"username"`
+}
+
 func IsErrInternal(err error) bool {
 	_, ok := err.(errInternal)
 	return ok
@@ -246,6 +252,22 @@ func IsErrInternal(err error) bool {
 type errInternal interface {
 	error
 	ErrInternal()
+}
+
+func IsErrInput(err error) bool {
+	if err == nil {
+		return false
+	}
+	if _, ok := err.(errInput); ok {
+		return true
+	}
+
+	return IsErrInput(errors.Unwrap(err))
+}
+
+type errInput interface {
+	error
+	ErrInput()
 }
 
 func IsErrInvalidArg(err error) bool {
@@ -258,3 +280,5 @@ type ErrInvalidArg string
 func (e ErrInvalidArg) Error() string {
 	return string(e)
 }
+
+func (ErrInvalidArg) ErrInput() {}

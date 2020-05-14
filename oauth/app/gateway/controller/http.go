@@ -32,12 +32,14 @@ type HTTPServer struct {
 	oauthClient oauth.AuthzCodeClient
 	renderer    httpServerRenderer
 	userRepo    app.UserRepo
+	userServ    app.UserService
 }
 
 func (s HTTPServer) Run() error {
 	r := chi.NewRouter()
 
 	r.Get("/", handlerFunc(s.showFetchOwnerPage()))
+	r.Get("/users/owners/{provider}", handlerFunc(s.fetchOwner()))
 	r.Get("/authzs/{provider}", handlerFunc(s.exchangeAccessToken()))
 
 	s.logfln("listen and serve on %s", s.addr)
@@ -57,6 +59,26 @@ func (s HTTPServer) showFetchOwnerPage() http.Handler {
 			return
 		}
 	})
+}
+
+func (s HTTPServer) fetchOwner() http.Handler {
+	return s.requireAuthenticated(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			id := s.popAuthenticatedUserID(r)
+			name := chi.URLParam(r, "provider")
+			fetch := usecase.NewFetchOwner(s.userRepo, s.userServ)
+			owner, err := fetch.Do(id, name)
+			if err != nil {
+				s.renderErr(w, "fetch owner", err)
+				return
+			}
+
+			if err := s.renderer.RenderOwner(w, owner); err != nil {
+				s.renderErr(w, "render owner", err)
+				return
+			}
+		}),
+	)
 }
 
 func (s HTTPServer) exchangeAccessToken() http.Handler {
@@ -174,5 +196,6 @@ func (s HTTPServer) logf(format string, as ...interface{}) {
 
 type httpServerRenderer interface {
 	RenderFetchOwnerPage(io.Writer) error
+	RenderOwner(io.Writer, app.User) error
 	RenderErr(io.Writer, error) error
 }

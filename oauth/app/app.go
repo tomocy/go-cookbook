@@ -88,6 +88,10 @@ func (p *Provider) setName(name string) error {
 	return nil
 }
 
+func (p Provider) Token() string {
+	return p.tok
+}
+
 func (p *Provider) setToken(tok string) error {
 	if tok == "" {
 		return fmt.Errorf("token should not be empty")

@@ -6,8 +6,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/tomocy/go-cookbook/oauth/authz/infra/memory"
-	"github.com/tomocy/go-cookbook/oauth/authz/presentation/http"
+	"github.com/tomocy/go-cookbook/oauth/authz/gateway/controller"
+	"github.com/tomocy/go-cookbook/oauth/authz/gateway/presentation"
 )
 
 func main() {
@@ -23,18 +23,10 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed to parse args: %w", err)
 	}
 
-	var (
-		clientRepo = memory.NewClientRepo()
-		userRepo   = memory.NewUserRepo()
-		sessRepo   = memory.NewSessionRepo()
-	)
-
-	serv, err := http.NewServer(w, conf.addr, clientRepo, userRepo, sessRepo)
-	if err != nil {
-		return fmt.Errorf("failed to craete server: %w", err)
-	}
-	if err := serv.Run(); err != nil {
-		return fmt.Errorf("failed to run server: %s", err)
+	ren := presentation.JSON
+	con := controller.NewHTTPServer(w, conf.addr, ren)
+	if err := con.Run(); err != nil {
+		return fmt.Errorf("failed to run server: %w", err)
 	}
 
 	return nil
