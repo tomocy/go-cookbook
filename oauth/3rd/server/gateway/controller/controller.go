@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/tomocy/go-cookbook/oauth/3rd/server"
 )
 
 func NewHTTPServer(w io.Writer, addr string, ren renderer) HTTPServer {
@@ -64,6 +65,7 @@ func (s HTTPServer) logf(format string, as ...interface{}) {
 }
 
 type renderer interface {
-	ShowFetchOwnerPage(w io.Writer) error
+	ShowFetchOwnerPage(io.Writer) error
+	ShowOwner(io.Writer, server.Owner) error
 	ShowErr(io.Writer, error) error
 }
