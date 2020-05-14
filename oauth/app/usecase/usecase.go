@@ -63,3 +63,39 @@ func (u AddProvider) Do(id app.UserID, name, tok string) error {
 
 	return nil
 }
+
+func NewFetchOwner(repo app.UserRepo, serv app.UserService) FetchOwner {
+	return FetchOwner{
+		repo: repo,
+		serv: serv,
+	}
+}
+
+type FetchOwner struct {
+	repo app.UserRepo
+	serv app.UserService
+}
+
+func (u FetchOwner) Do(id app.UserID, name string) (app.User, error) {
+	ctx := context.TODO()
+
+	user, found, err := u.repo.Find(ctx, id)
+	if err != nil {
+		return app.User{}, fmt.Errorf("failed to find user: %w", err)
+	}
+	if !found {
+		return app.User{}, app.ErrInvalidArg("no such user")
+	}
+
+	prov, found := user.Provider(name)
+	if !found {
+		return app.User{}, app.ErrInvalidArg("no such provider")
+	}
+
+	owner, err := u.serv.FetchWithAccessToken(ctx, prov.Token())
+	if err != nil {
+		return app.User{}, fmt.Errorf("failed to fetch user with access token: %w", err)
+	}
+
+	return owner, nil
+}
