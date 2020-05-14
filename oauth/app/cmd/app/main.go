@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/tomocy/go-cookbook/oauth"
+	"github.com/tomocy/go-cookbook/oauth/app"
 	"github.com/tomocy/go-cookbook/oauth/app/gateway/controller"
 	"github.com/tomocy/go-cookbook/oauth/app/gateway/presentation"
+	"github.com/tomocy/go-cookbook/oauth/app/infra/memory"
 )
 
 func main() {
@@ -23,8 +27,23 @@ func run(w io.Writer, args []string) error {
 		return fmt.Errorf("failed parse args: %w", err)
 	}
 
+	oauthClient := oauth.AuthzCodeClient{
+		AuthzServerEndpoint: oauth.Endpoint{
+			Addr: conf.authzAddr,
+			Paths: map[string]string{
+				oauth.PathToken: "/tokens",
+			},
+		},
+	}
 	ren := presentation.HTML
-	con := controller.NewHTTPServer(w, conf.addr, ren)
+	userRepo := func() app.UserRepo {
+		repo := memory.NewUserRepo()
+		u, _ := app.NewUser("aiueo_user_id")
+		repo.Save(context.Background(), u)
+
+		return repo
+	}()
+	con := controller.NewHTTPServer(w, conf.addr, oauthClient, ren, userRepo)
 	if err := con.Run(); err != nil {
 		return fmt.Errorf("failed to run server: %w", err)
 	}
