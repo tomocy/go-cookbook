@@ -10,7 +10,7 @@ const (
 )
 
 var HTML = html{
-	htmlTemplateFetchOwner: template.Must(template.ParseFiles("views/html/template/user/owner/fetch.html")),
+	htmlTemplateFetchOwner: template.Must(template.ParseFiles("views/html/templates/user/owner/fetch.html")),
 }
 
 type html map[string]*template.Template
