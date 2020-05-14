@@ -10,6 +10,10 @@ type UserRepo interface {
 	Save(context.Context, User) error
 }
 
+type UserService interface {
+	FetchWithAccessToken(context.Context, string) (User, error)
+}
+
 func NewUser(id UserID) (User, error) {
 	u := User{
 		providers: make(map[string]Provider),
