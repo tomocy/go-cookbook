@@ -42,10 +42,17 @@ func handlerFunc(h http.Handler) http.HandlerFunc {
 func (s HTTPServer) showFetchOwnerPage() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := s.renderer.ShowFetchOwnerPage(w); err != nil {
-			s.logfln("failed to show fetch owner page: %w", err)
+			s.renderErr(w, err)
 			return
 		}
 	})
+}
+
+func (s HTTPServer) renderErr(w io.Writer, err error) {
+	if err := s.renderer.ShowErr(w, err); err != nil {
+		s.logfln("failed to show err: %w", err)
+		return
+	}
 }
 
 func (s HTTPServer) logfln(format string, as ...interface{}) {
