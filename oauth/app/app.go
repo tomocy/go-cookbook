@@ -1,6 +1,13 @@
 package app
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
+
+type UserRepo interface {
+	Find(context.Context, UserID) (User, bool, error)
+}
 
 func NewUser(id UserID) (User, error) {
 	u := User{
