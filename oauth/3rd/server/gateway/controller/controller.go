@@ -25,8 +25,27 @@ type HTTPServer struct {
 func (s HTTPServer) Run() error {
 	r := chi.NewRouter()
 
+	r.Route("/owners", func(r chi.Router) {
+		r.Get("/", handlerFunc(s.showFetchOwnerPage()))
+	})
+
 	s.logfln("listen and serve on %s", s.addr)
 	return http.ListenAndServe(s.addr, r)
+}
+
+func handlerFunc(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, r)
+	}
+}
+
+func (s HTTPServer) showFetchOwnerPage() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := s.renderer.ShowFetchOwnerPage(w); err != nil {
+			s.logfln("failed to show fetch owner page: %w", err)
+			return
+		}
+	})
 }
 
 func (s HTTPServer) logfln(format string, as ...interface{}) {
