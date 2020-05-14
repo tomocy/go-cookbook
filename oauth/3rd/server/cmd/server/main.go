@@ -8,6 +8,7 @@ import (
 
 	"github.com/tomocy/go-cookbook/oauth/3rd/server/gateway/controller"
 	"github.com/tomocy/go-cookbook/oauth/3rd/server/gateway/presenter"
+	"github.com/tomocy/go-cookbook/oauth/3rd/server/infra/aiueo"
 )
 
 func main() {
@@ -24,7 +25,8 @@ func run(w io.Writer, args []string) error {
 	}
 
 	ren := presenter.HTML
-	serv := controller.NewHTTPServer(w, conf.addr, ren)
+	ownerServ := aiueo.OwnerService
+	serv := controller.NewHTTPServer(w, conf.addr, ren, ownerServ)
 	if err := serv.Run(); err != nil {
 		return fmt.Errorf("failed to run http server: %w", err)
 	}

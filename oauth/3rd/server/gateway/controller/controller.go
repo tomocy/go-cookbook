@@ -8,20 +8,23 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/tomocy/go-cookbook/oauth/3rd/server"
+	"github.com/tomocy/go-cookbook/oauth/3rd/server/usecase"
 )
 
-func NewHTTPServer(w io.Writer, addr string, ren renderer) HTTPServer {
+func NewHTTPServer(w io.Writer, addr string, ren renderer, ownerServ server.OwnerService) HTTPServer {
 	return HTTPServer{
-		w:        w,
-		addr:     addr,
-		renderer: ren,
+		w:         w,
+		addr:      addr,
+		renderer:  ren,
+		ownerServ: ownerServ,
 	}
 }
 
 type HTTPServer struct {
-	w        io.Writer
-	addr     string
-	renderer renderer
+	w         io.Writer
+	addr      string
+	renderer  renderer
+	ownerServ server.OwnerService
 }
 
 func (s HTTPServer) Run() error {
@@ -54,10 +57,35 @@ func (s HTTPServer) showFetchOwnerPage() http.Handler {
 func (s HTTPServer) fetchOwner() http.Handler {
 	return s.requireUserAuthenticated(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			prov := chi.URLParam(r, "provider")
-			owner := server.Owner{
-				Name:     "aiueo",
-				Provider: prov,
+			id := s.popAuthenticatedUserID(r)
+			var haveToken usecase.DoHaveAccessToken
+			had, err := haveToken.Do(id)
+			if err != nil {
+				s.renderErr(w, err)
+				return
+			}
+
+			if had {
+				s.pushIntoSession(w, sessOriginalURI, r.URL.String())
+				var generate usecase.GenerateAuthzCodeURI
+				uri, err := generate.Do(id)
+				if err != nil {
+					s.renderErr(w, err)
+					return
+				}
+
+				w.Header().Set("Location", uri)
+				w.WriteHeader(http.StatusSeeOther)
+				return
+			}
+
+			fetch := usecase.FetchOwner{
+				Service: s.ownerServ,
+			}
+			owner, err := fetch.Do(id)
+			if err != nil {
+				s.renderErr(w, err)
+				return
 			}
 
 			if err := s.renderer.ShowOwner(w, owner); err != nil {
@@ -98,6 +126,26 @@ func (s HTTPServer) pushIntoContext(r *http.Request, key, val interface{}) *http
 
 func (s HTTPServer) popFromContext(r *http.Request, key interface{}) interface{} {
 	return r.Context().Value(key)
+}
+
+const (
+	sessOriginalURI = "original_location"
+)
+
+func (s HTTPServer) pushIntoSession(w http.ResponseWriter, key, val string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:  key,
+		Value: val,
+	})
+}
+
+func (s HTTPServer) popFromSession(r *http.Request, key string) string {
+	c, err := r.Cookie(key)
+	if err != nil {
+		return ""
+	}
+
+	return c.Value
 }
 
 func (s HTTPServer) renderErr(w io.Writer, err error) {
