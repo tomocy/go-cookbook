@@ -40,6 +40,11 @@ func (u *User) setID(id UserID) error {
 	return nil
 }
 
+func (u User) Provider(name string) (Provider, bool) {
+	p, ok := u.providers[name]
+	return p, ok
+}
+
 func (u *User) AddProvider(p Provider) error {
 	if _, ok := u.providers[p.name]; ok {
 		return ErrInvalidArg("duplicated provider")
