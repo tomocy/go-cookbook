@@ -37,7 +37,7 @@ type HTTPServer struct {
 func (s HTTPServer) Run() error {
 	r := chi.NewRouter()
 
-	r.Get("/", handlerFunc(s.showFetchUserPage()))
+	r.Get("/", handlerFunc(s.showFetchOwnerPage()))
 	r.Get("/authzs/{provider}", handlerFunc(s.exchangeAccessToken()))
 
 	s.logfln("listen and serve on %s", s.addr)
@@ -50,9 +50,9 @@ func handlerFunc(h http.Handler) http.HandlerFunc {
 	}
 }
 
-func (s HTTPServer) showFetchUserPage() http.Handler {
+func (s HTTPServer) showFetchOwnerPage() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := s.renderer.RenderFetchUserPage(w); err != nil {
+		if err := s.renderer.RenderFetchOwnerPage(w); err != nil {
 			s.renderErr(w, "render fetch user page", err)
 			return
 		}
@@ -173,6 +173,6 @@ func (s HTTPServer) logf(format string, as ...interface{}) {
 }
 
 type httpServerRenderer interface {
-	RenderFetchUserPage(io.Writer) error
+	RenderFetchOwnerPage(io.Writer) error
 	RenderErr(io.Writer, error) error
 }

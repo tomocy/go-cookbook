@@ -6,19 +6,19 @@ import (
 )
 
 const (
-	htmlTemplFetchUser = "user.fetch"
-	htmlTemplErr       = "error"
+	htmlTemplFetchOwner = "user.owner.fetch"
+	htmlTemplErr        = "error"
 )
 
 var HTML = html{
-	htmlTemplFetchUser: template.Must(template.ParseFiles("views/html/templates/user/fetch.html")),
-	htmlTemplErr:       template.Must(template.ParseFiles("views/html/templates/error.html")),
+	htmlTemplFetchOwner: template.Must(template.ParseFiles("views/html/templates/user/owner/fetch.html")),
+	htmlTemplErr:        template.Must(template.ParseFiles("views/html/templates/error.html")),
 }
 
 type html map[string]*template.Template
 
-func (h html) RenderFetchUserPage(w io.Writer) error {
-	return h[htmlTemplFetchUser].Execute(w, nil)
+func (h html) RenderFetchOwnerPage(w io.Writer) error {
+	return h[htmlTemplFetchOwner].Execute(w, nil)
 }
 
 func (h html) RenderErr(w io.Writer, err error) error {
