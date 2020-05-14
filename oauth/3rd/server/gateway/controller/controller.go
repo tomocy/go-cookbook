@@ -28,6 +28,7 @@ func (s HTTPServer) Run() error {
 
 	r.Route("/owners", func(r chi.Router) {
 		r.Get("/", handlerFunc(s.showFetchOwnerPage()))
+		r.Get("/{provider}", handlerFunc(s.fetchOwner()))
 	})
 
 	s.logfln("listen and serve on %s", s.addr)
@@ -43,6 +44,21 @@ func handlerFunc(h http.Handler) http.HandlerFunc {
 func (s HTTPServer) showFetchOwnerPage() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := s.renderer.ShowFetchOwnerPage(w); err != nil {
+			s.renderErr(w, err)
+			return
+		}
+	})
+}
+
+func (s HTTPServer) fetchOwner() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		prov := chi.URLParam(r, "provider")
+		owner := server.Owner{
+			Name:     "aiueo",
+			Provider: prov,
+		}
+
+		if err := s.renderer.ShowOwner(w, owner); err != nil {
 			s.renderErr(w, err)
 			return
 		}
